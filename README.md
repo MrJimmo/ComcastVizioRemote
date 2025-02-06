@@ -37,7 +37,7 @@ Lots of comments in the code, for the curious.
 I have 1 cable box at the far end of the house near the main TV.  I split the signal from the cable adapter output and run coax to my office at the other end of the house to a second TV.  This project allows me to change the channel (and control the TV) from the browser, from anywhere I have NAT access (mainly, in the room at the other end of the house)
 
 Basically laid out like this:<br>
-<img src="./content/OverallSetup.png">
+<img src="./content/OverallSetup.PNG">
 
 The UI is a no frills HTML/JS/CSS SPA and mimics all the buttons on the remote controls as well as provides a set of presets and a crude manual entry section that allows for experimentation.
 
@@ -45,13 +45,13 @@ Comcast Buttons:<br>
 <img src="./content/UI_Comcast_Buttons.png" style="width:40%">
 
 Vizio TV Buttons:<br>
-<img src="./content/UI_Vizio_Buttons.png" style="width:40%">
+<img src="./content/UI_Vizio_Buttons.PNG" style="width:40%">
 
 XFinity XR2 Buttons:<br>
-<img src="./content/UI_XFinity_XR2_Buttons.png" style="width:36%">
+<img src="./content/UI_Xfinity_XR2_Buttons.PNG" style="width:36%">
 
 Presets are just a group of buttons representing various channels (TV and Music):<br>
-<img src="./content/UI_Presets.png" style="width:60%">
+<img src="./content/UI_Presets.PNG" style="width:60%">
 
 
 
@@ -59,14 +59,14 @@ Presets are just a group of buttons representing various channels (TV and Music)
 This section allows manual entry of protocols and codes, and for 'scripting' or creation of a sequence of codes with some basic functionality like **DELAY** and **DELAY_UNTIL_DATE_TIME**
 
 The following snip shows a sequence that waits until a certain date/time has elapsed, then sends 1197[enter], waits 5 seconds, sends 28[enter], waits another 5 seconds, and finally sends 4[enter].<br>
-<img src="./content/UI_Raw_Section.png" style="width:60%">
+<img src="./content/UI_Raw_Section.PNG" style="width:60%">
 
 Mainly this just shows the possibility of creating more complicated scenarios.
 
 # ESP8266
 Device is a run of the mill ESP8266 with WIFI (platform: espressif8266)
 
-<img src="./Content/SimpleBreadBoardSetupCropped.jpg" style="width:80%"><br>
+<img src="./content/SimpleBreadBoardSetupCropped.jpg" style="width:80%"><br>
 D1 and D2 are connected to the anodes of the 5mm 940nm IR LEDs (purchased from https://www.adafruit.com/product/388)
 
 This picture is just a simple test rig, the actual setup I have deployed has the LEDs soldered to a couple of perf boards at the end of long wires, that enable affixing near the devices.  No pictures of that mess.  It's Crude and I may revisit later, but for now works perfectly...which means I'll never 'fix' it :o)
@@ -122,7 +122,7 @@ Turns out, they are related in an interesting way.
 The NEC Value, if you look at it as a sequence of binary values left-to-right, it represents the pulse timings that are emitted by the IR LEDs of the remote controls.
 
 Here's the power button for this Vizio remote, after graphing the pulse times and just eyeballing the 0's and 1's:<br>
-<img src="./content/GraphingPowerSignal.PNG" height="auto"><br>
+<img src="./content/GraphingPowerSignal.png" height="auto"><br>
 _(I connected one of those cheap 8-ch logic analyzers to the remotes IR LED and used Pulseview to grab the values, and excel to plot the graph, mspaint for the extra annotations)_
 
 That graph is for NEC Vizio Power button value 0x20DF10EF, which as binary is: `00100000 11011111 00010000 11101111`<br>
