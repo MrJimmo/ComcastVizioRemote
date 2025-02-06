@@ -1,0 +1,351 @@
+const char index_html[] PROGMEM = R"=====(
+<!DOCTYPE html>
+<html>
+<!--
+    AllInOne.html is a basic HTML file I threw together to provide simple UI
+    representing all the buttons on the Comcast(digital adapter Remote), XFinity 
+    XR2, and my Vizio TV remote controls as well as a couple other sections that
+    provide presets.
+
+    This can be loaded locally with the script and css nearby as:
+        AllInOne.html?host_ip=192.168.1.NNN&presets
+    ...where that host_ip is the IP of the device and "presets" is one of the
+    values you can add, to have it open to that section.
+
+    The content of this file is copied and placed into index.h, which defines 
+    the index_html variable.
+
+    main.cpp uses ESP8266WebServer and defines the default "/" route, which
+    causes the index_html variable to be returned, and thus returns the contents
+    of this file.
+
+    Any edits in this file then require it to be re-copied into index.h.
+    If this were a more complicated project, some other automated way of 
+    updating the index_html variable would be employed.  For now, this works
+    just fine.
+
+    This was the initial goal, but since the versatility is there, I also 
+    created a "Raw" section in the UI, to enable sending arbitrary IR codes
+    (as long as they are NEC or XMP.  More support later if I find the need).
+
+    The Raw section also provides very simple 'scripting' or scheduling of
+    sending IR codes.
+
+    Example:
+
+        # Send VIZIO [Power], Comcast [1] [1] [9] [7] [ENTER]
+        DELAY_UNTIL_DATE_TIME,"1/11/2025 11:18:58 PM"
+        NEC,0x20DF10EF         # Vizio Power
+        XMP,0x170F443E1E000100 # Button 1
+        XMP,0x170F443E1E000100 # Button 1
+        XMP,0x170F443E16000900 # Button 9
+        XMP,0x170F443E18000700 # Button 7
+        XMP,0x170F443E18002500 # Button ENTER
+        DELAY,5000
+        XMP,0x170F443E1B000200 # Button 2
+        XMP,0x170F443E17000800 # Button 8
+        XMP,0x170F443E18002500 # Button ENTER
+        DELAY,5000
+        XMP,0x170F443E1B000400 # Button 4
+        XMP,0x170F443E18002500 # Button ENTER
+
+    The script behind this page implements the behavior and shows examples of
+    what can be dreamedup.
+
+    '#'s are comments
+    Line format for code to send:  <IR_PROTOCOl>,<IR_CODE>
+    Key words:
+        DELAY: Wait the specified time in ms before processing next line.
+        DELAY_UNTIL_DATE_TIME: Wait until the given date/time before processing
+            next line.
+
+    See sendNextCode() function comments in script.js for more info on what
+    these mean and how they are implemented.
+
+    Skies the limit.
+-->
+<head>
+<title>Comcast and Vizio TV Remote Control</title>
+<link rel="stylesheet" href="style.css">
+<script src="script.js"></script>
+</head>
+<body">
+<div id="txtOutput"></div>
+<div id="divAllInOneMainGrid" class="all-in-one-main-grid">
+    <!-- =========================================== -->
+    <!-- Navigation buttons                          -->
+    <!-- =========================================== -->
+    <div id="divNavigationButtons" class="navigation-buttons-container">
+        <button class="navigation-button-style" id="btnNavMain"       onclick="onClickNavButton(this);" data-nav-id="divDefaultButtons">Main</button>
+        <button class="navigation-button-style" id="btnNavPresets"    onclick="onClickNavButton(this)" data-nav-id="divPresetsButtons">Presets</button>
+        <button class="navigation-button-style" id="btnNavComcast"    onclick="onClickNavButton(this)" data-nav-id="divComcastButtons">Comcast</button>
+        <button class="navigation-button-style" id="btnNavXfinity"    onclick="onClickNavButton(this)" data-nav-id="divXFinityXR2Buttons">XFinity</button>
+        <button class="navigation-button-style" id="btnNavVizio"      onclick="onClickNavButton(this)" data-nav-id="divVizioButtons">Vizio</button>
+        <button class="navigation-button-style" id="btnSendRawValues" onclick="onClickNavButton(this)" data-nav-id="divRawValues">Raw</button>
+    </div>
+    <!-- =========================================== -->
+    <!-- Default Button Controls                     -->
+    <!-- =========================================== -->
+    <div id="divDefaultButtons" class="" style="display:none; visibility:hidden">
+        <div class="default-control-button-grid">
+            <button class="default-control-button-style" id="btnMainVizioVolumeUp"        onclick="OnControlButtonClick(this);" data-action="ACTION_VIZIO_VOLUME_UP">Volume +</button>
+            <button class="default-control-button-style" id="btnMainVizioChannelUp"       onclick="OnControlButtonClick(this);" data-action="ACTION_COMCAST_CHANNEL_UP">Channel +</button>
+            <button class="default-control-button-style" id="btnMainVizioMute"            onclick="OnControlButtonClick(this);" data-action="ACTION_VIZIO_MUTE">Mute</button>
+            <button class="default-control-button-style" id="btnMainXFINITYXR2_PAGE_UP"   onclick="OnControlButtonClick(this);" data-action="ACTION_XFINITYXR2_PAGE_UP">Page Up</button>
+            <button class="default-control-button-style" id="btnMainVizioVolumeDown"      onclick="OnControlButtonClick(this);" data-action="ACTION_VIZIO_VOLUME_DOWN">Volume -</button>
+            <button class="default-control-button-style" id="btnMainVizioChannelDown"     onclick="OnControlButtonClick(this);" data-action="ACTION_COMCAST_CHANNEL_DOWN">Channel -</button>
+            <button class="default-control-button-style" id="btnMainVizioSwapSrc"         onclick="OnControlButtonClick(this);" data-action="ACTION_VIZIO_SWAP_SRC">Swap Src</button>
+            <button class="default-control-button-style" id="btnMainXFINITYXR2_PAGE_DOWN" onclick="OnControlButtonClick(this);" data-action="ACTION_XFINITYXR2_PAGE_DOWN">Page Down</button>
+        </div>
+        <div class="default-keypad-and-presets-section">
+            <div class="default-keypad-button-grid">
+                <button class="default-keypad-button-style" id="btnMainComcastKeypad_1" onclick="OnControlButtonClick(this);" data-action="ACTION_COMCAST_1">1</button>
+                <button class="default-keypad-button-style" id="btnMainComcastKeypad_2" onclick="OnControlButtonClick(this);" data-action="ACTION_COMCAST_2">2</button>
+                <button class="default-keypad-button-style" id="btnMainComcastKeypad_3" onclick="OnControlButtonClick(this);" data-action="ACTION_COMCAST_3">3</button>
+                <button class="default-keypad-button-style" id="btnMainComcastKeypad_4" onclick="OnControlButtonClick(this);" data-action="ACTION_COMCAST_4">4</button>
+                <button class="default-keypad-button-style" id="btnMainComcastKeypad_5" onclick="OnControlButtonClick(this);" data-action="ACTION_COMCAST_5">5</button>
+                <button class="default-keypad-button-style" id="btnMainComcastKeypad_6" onclick="OnControlButtonClick(this);" data-action="ACTION_COMCAST_6">6</button>
+                <button class="default-keypad-button-style" id="btnMainComcastKeypad_7" onclick="OnControlButtonClick(this);" data-action="ACTION_COMCAST_7">7</button>
+                <button class="default-keypad-button-style" id="btnMainComcastKeypad_8" onclick="OnControlButtonClick(this);" data-action="ACTION_COMCAST_8">8</button>
+                <button class="default-keypad-button-style" id="btnMainComcastKeypad_9" onclick="OnControlButtonClick(this);" data-action="ACTION_COMCAST_9">9</button>
+                <button class="default-keypad-button-style" id="btnMainComcastEnter"    onclick="OnControlButtonClick(this);" data-action="ACTION_COMCAST_ENTER">Enter</button>
+                <button class="default-keypad-button-style" id="btnMainComcastKeypad_0" onclick="OnControlButtonClick(this);" data-action="ACTION_COMCAST_0">0</button>
+                <button class="default-keypad-button-style" id="btnMainComcast_Last"    onclick="OnControlButtonClick(this);" data-action="ACTION_COMCAST_LAST">Last</button>
+            </div>
+            <div class="default-control-buttons">
+                <button class="default-presets-button-style" id="btnMainComcastInfo"  onclick="OnControlButtonClick(this);" data-action="ACTION_COMCAST_INFO">Info</button>
+                <button class="default-presets-button-style" id="btnMainXFinityGuide" onclick="OnControlButtonClick(this);" data-action="ACTION_XFINITYXR2_GUIDE">Guide</button>
+                <button class="default-presets-button-style" id="btnMainComcastExit"  onclick="OnControlButtonClick(this);" data-action="ACTION_COMCAST_EXIT">Exit</button>
+            </div>
+            <div class="default-preset-button">
+                <button class="default-presets-button-style" id="btnMainPresetMeTV"     onclick="OnControlButtonClick(this);" title="4" data-action="ACTION_PRESET_TV_KOMO">KOMO(4)</button>
+                <button class="default-presets-button-style" id="btnMainPresetMeTV"     onclick="OnControlButtonClick(this);" title="15" data-action="ACTION_PRESET_TV_METV">MeTV(15)</button>
+                <button class="default-presets-button-style" id="btnMainPresetAandE"    onclick="OnControlButtonClick(this);" title="52" data-action="ACTION_PRESET_TV_AANDE">A&E(52)</button>
+                <button class="default-presets-button-style" id="btnMainPresetsTVHANDI" onclick="OnControlButtonClick(this);" title="1197" data-action="ACTION_PRESET_TV_HEROES_AND_ICONS">H&I(1197)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- =========================================== -->
+    <!-- Preset Buttons Section                      -->
+    <!-- =========================================== -->
+    <div id="divPresetsButtons" class="" style="display:none;visibility:hidden">
+        <div class="presets-channel-preset-grid">
+            <button class="presets-channel-button-style" id="btnPresetsTVKOMO" onclick="OnControlButtonClick(this);" title="Ch 4" data-action="ACTION_PRESET_TV_KOMO">KOMO(4)</button>
+            <button class="presets-channel-button-style" id="btnPresetsTVKING" onclick="OnControlButtonClick(this);" title="Ch 5" data-action="ACTION_PRESET_TV_KING">KING(5)</button>
+            <button class="presets-channel-button-style" id="btnPresetsTVKONG" onclick="OnControlButtonClick(this);" title="Ch 6" data-action="ACTION_PRESET_TV_KONG">KONG(6)</button>
+            <button class="presets-channel-button-style" id="btnPresetsTVKIRO" onclick="OnControlButtonClick(this);" title="Ch 7" data-action="ACTION_PRESET_TV_KIRO">KIRO(7)</button>
+            <button class="presets-channel-button-style" id="btnPresetsTVDISC" onclick="OnControlButtonClick(this);" title="Ch 8" data-action="ACTION_PRESET_TV_DISC">DISC(8)</button>
+            <button class="presets-channel-button-style" id="btnPresetsTVKCTS" onclick="OnControlButtonClick(this);" title="Ch 9" data-action="ACTION_PRESET_TV_KCTS">KCTS(9)</button>
+            <button class="presets-channel-button-style" id="btnPresetsTVKZJO" onclick="OnControlButtonClick(this);" title="Ch 10" data-action="ACTION_PRESET_TV_KZJO">KZJO(10)</button>
+            <button class="presets-channel-button-style" id="btnPresetsTVKSTW" onclick="OnControlButtonClick(this);" title="Ch 11" data-action="ACTION_PRESET_TV_KSTW">KSTW(11)</button>
+            <button class="presets-channel-button-style" id="btnPresetsTVKBTC" onclick="OnControlButtonClick(this);" title="Ch 12" data-action="ACTION_PRESET_TV_KBTC">KBTC(12)</button>
+            <button class="presets-channel-button-style" id="btnPresetsTVKCPQ" onclick="OnControlButtonClick(this);" title="Ch 13" data-action="ACTION_PRESET_TV_KCPQ">KCPQ(13)</button>
+            <button class="presets-channel-button-style" id="btnPresetsTVMETV" onclick="OnControlButtonClick(this);" title="Ch 15" data-action="ACTION_PRESET_TV_METV">MeTV(15)</button>
+            <button class="presets-channel-button-style" id="btnPresetsTVBCTV" onclick="OnControlButtonClick(this);" title="Ch 28" data-action="ACTION_PRESET_TV_BCTV">BCTV(28)</button>
+            <button class="presets-channel-button-style" id="btnPresetsTVESPN1" onclick="OnControlButtonClick(this);" title="Ch 31" data-action="ACTION_PRESET_TV_ESPN1">ESPN(31)</button>
+            <button class="presets-channel-button-style" id="btnPresetsTVESPN2" onclick="OnControlButtonClick(this);" title="Ch 32" data-action="ACTION_PRESET_TV_ESPN2">ESPN2(32)</button>
+            <button class="presets-channel-button-style" id="btnPresetsTVAANDE" onclick="OnControlButtonClick(this);" title="Ch 52" data-action="ACTION_PRESET_TV_AANDE">A&E(52)</button>
+            <button class="presets-channel-button-style" id="btnPresetsTVBBC" onclick="OnControlButtonClick(this);" title="Ch 150" data-action="ACTION_PRESET_TV_BBC">BBC(150)</button>
+            <button class="presets-channel-button-style" id="btnPresetsTVKOMO2" onclick="OnControlButtonClick(this);" title="Ch 328" data-action="ACTION_PRESET_TV_KOMO2">KOMO2(328)</button>
+            <button class="presets-channel-button-style" id="btnPresetsTVCREATE" onclick="OnControlButtonClick(this);" title="Ch 336" data-action="ACTION_PRESET_TV_CREATE">Create(336)</button>
+            <button class="presets-channel-button-style" id="btnPresetsTVFMC" onclick="OnControlButtonClick(this);" title="Ch 1078" data-action="ACTION_PRESET_TV_FMC">FMC(1078)</button>
+            <button class="presets-channel-button-style" id="btnPresetsTVMETVPLUS" onclick="OnControlButtonClick(this);" title="Ch 1196" data-action="ACTION_PRESET_TV_METV_PLUS">MeTV+(1196)</button>
+            <button class="presets-channel-button-style" id="btnPresetsTVHANDI" onclick="OnControlButtonClick(this);" title="Ch 1197" data-action="ACTION_PRESET_TV_HEROES_AND_ICONS">H&I(1197)</button>
+        </div>
+        <div class="presets-music-preset-grid">
+            <button class="presets-music-button-style" id="btnPresetsMusicEDM" onclick="OnControlButtonClick(this);" title="Ch 903" data-action="ACTION_PRESET_MUSIC_903">EDM(903)</button>
+            <button class="presets-music-button-style" id="btnPresetsMusicMEta" onclick="OnControlButtonClick(this);" title="Ch 913" data-action="ACTION_PRESET_MUSIC_913">HvyRock(913)</button>
+            <button class="presets-music-button-style" id="btnPresetsMusicClassicRock" onclick="OnControlButtonClick(this);" title="Ch 918" data-action="ACTION_PRESET_MUSIC_918">ClsRock(918)</button>
+            <button class="presets-music-button-style" id="btnPresetsMusic60s" onclick="OnControlButtonClick(this);" title="Ch 904" data-action="ACTION_PRESET_MUSIC_904">60's(904)</button>
+            <button class="presets-music-button-style" id="btnPresetsMusic70s" onclick="OnControlButtonClick(this);" title="Ch 929" data-action="ACTION_PRESET_MUSIC_929">70's(929)</button>
+            <button class="presets-music-button-style" id="btnPresetsMusic80s" onclick="OnControlButtonClick(this);" title="Ch 928" data-action="ACTION_PRESET_MUSIC_928">80's(928)</button>
+            <button class="presets-music-button-style" id="btnPresetsMusicGoldenOldies" onclick="OnControlButtonClick(this);" title="Ch 930" data-action="ACTION_PRESET_MUSIC_930">GldOldies(930)</button>
+            <button class="presets-music-button-style" id="btnPresetsMusicClassiCountry" onclick="OnControlButtonClick(this);" title="Ch 934" data-action="ACTION_PRESET_MUSIC_934">ClsCntry(934)</button>
+            <button class="presets-music-button-style" id="btnPresetsMusicSoundScapes" onclick="OnControlButtonClick(this);" title="Ch 943" data-action="ACTION_PRESET_MUSIC_943">SndScapes(943)</button>
+            <button class="presets-music-button-style" id="btnPresetsMusicEasy" onclick="OnControlButtonClick(this);" title="Ch 948" data-action="ACTION_PRESET_MUSIC_948">Easy(948)</button>
+            <button class="presets-music-button-style" id="btnPresetsMusicClassical" onclick="OnControlButtonClick(this);" title="Ch 949" data-action="ACTION_PRESET_MUSIC_949">Classical(949)</button>
+        </div>
+    </div>
+
+    <!-- =========================================== -->
+    <!-- Xfinity Remote Control (XR2) Buttons        -->
+    <!-- =========================================== -->
+    <div id="divXFinityXR2Buttons" class="" style="display:none; visibility:hidden">
+        <div class="xfinity-xr2-3-column-button-grid">
+            <button class="xfinity-xr2-upper-button-style" id="btnXFINITYXR2_TV_POWER" onclick="OnControlButtonClick(this);" data-action="ACTION_XFINITYXR2_TV_POWER">Power (TV)</button>
+            <button class="xfinity-xr2-upper-button-style" id="btnXFINITYXR2_ALL_POWER" onclick="OnControlButtonClick(this);" data-action="ACTION_XFINITYXR2_ALL_POWER">All Power</button>
+            <button class="xfinity-xr2-upper-button-style" id="btnXFINITYXR2_TV_INPUT" onclick="OnControlButtonClick(this);" data-action="ACTION_VIZIO_INPUT">TV Input</button>
+
+            <button class="xfinity-xr2-upper-button-style" id="btnXFINITYXR2_VOL_UP" onclick="OnControlButtonClick(this);" data-action="ACTION_VIZIO_VOLUME_UP">Volume Up</button>
+            <button class="xfinity-xr2-upper-button-style" id="btnXFINITYXR2_MUTE" onclick="OnControlButtonClick(this);" data-action="ACTION_VIZIO_MUTE">Mute</button>
+            <button class="xfinity-xr2-upper-button-style" id="btnXFINITYXR2_CHANNEL_UP" onclick="OnControlButtonClick(this);" data-action="ACTION_XFINITYXR2_CHANNEL_UP">Channel Up</button>
+
+            <button class="xfinity-xr2-upper-button-style" id="btnXFINITYXR2_VOL_DOWN" onclick="OnControlButtonClick(this);" data-action="ACTION_VIZIO_VOLUME_DOWN">Volume Down</button>
+            <button class="xfinity-xr2-upper-button-style" id="btnXFINITYXR2_SEARCH" onclick="OnControlButtonClick(this);" data-action="ACTION_XFINITYXR2_SEARCH">Search</button>
+            <button class="xfinity-xr2-upper-button-style" id="btnXFINITYXR2_CHANNEL_DOWN" onclick="OnControlButtonClick(this);" data-action="ACTION_XFINITYXR2_CHANNEL_DOWN">Channel Down</button>
+        </div>
+        <div class="xfinity-xr2-4-column-button-grid">
+            <button class="xfinity-xr2-upper-button-style" id="btnXFINITYXR2_REWIND" onclick="OnControlButtonClick(this);" data-action="ACTION_XFINITYXR2_REWIND">Rew</button>
+            <button class="xfinity-xr2-upper-button-style" id="btnXFINITYXR2_PLAY" onclick="OnControlButtonClick(this);" data-action="ACTION_XFINITYXR2_PLAY">Play</button>
+            <button class="xfinity-xr2-upper-button-style" id="btnXFINITYXR2_PAUSE" onclick="OnControlButtonClick(this);" data-action="ACTION_XFINITYXR2_PAUSE">Pause</button>
+            <button class="xfinity-xr2-upper-button-style" id="btnXFINITYXR2_FF" onclick="OnControlButtonClick(this);" data-action="ACTION_XFINITYXR2_FF">FF</button>
+        </div>
+        <div class="xfinity-xr2-3-column-button-grid">
+            <button class="xfinity-xr2-upper-button-style" id="btnXFINITYXR2_STOP" onclick="OnControlButtonClick(this);" data-action="ACTION_XFINITYXR2_STOP">Stop</button>
+            <button class="xfinity-xr2-upper-button-style" id="btnXFINITYXR2_XFINITY_MENU" onclick="OnControlButtonClick(this);" data-action="ACTION_XFINITYXR2_XFINITY_MENU">Xfinity</button>
+            <button class="xfinity-xr2-upper-button-style" id="btnXFINITYXR2_REC" onclick="OnControlButtonClick(this);" data-action="ACTION_XFINITYXR2_REC">Rec</button>
+        </div>
+        <div class="xfinity-xr2-3-column-button-grid">
+            <button class="xfinity-xr2-upper-button-style" id="btnXFINITYXR2_GUIDE" onclick="OnControlButtonClick(this);" data-action="ACTION_XFINITYXR2_GUIDE">Guide</button>
+            <button class="xfinity-xr2-upper-button-style" id="btnXFINITYXR2_ARROW_UP" onclick="OnControlButtonClick(this);" data-action="ACTION_XFINITYXR2_ARROW_UP">Up</button>
+            <button class="xfinity-xr2-upper-button-style" id="btnXFINITYXR2_PAGE_UP" onclick="OnControlButtonClick(this);" data-action="ACTION_XFINITYXR2_PAGE_UP">Page Up</button>
+
+            <button class="xfinity-xr2-upper-button-style" id="btnXFINITYXR2_ARROW_LEFT" onclick="OnControlButtonClick(this);" data-action="ACTION_XFINITYXR2_ARROW_LEFT">Left</button>
+            <button class="xfinity-xr2-upper-button-style" id="btnXFINITYXR2_OK" onclick="OnControlButtonClick(this);" data-action="ACTION_XFINITYXR2_OK">OK</button>
+            <button class="xfinity-xr2-upper-button-style" id="btnXFINITYXR2_ARROW_RIGHT" onclick="OnControlButtonClick(this);" data-action="ACTION_XFINITYXR2_ARROW_RIGHT">Right</button>
+
+            <button class="xfinity-xr2-upper-button-style" id="btnXFINITYXR2_LAST" onclick="OnControlButtonClick(this);" data-action="ACTION_XFINITYXR2_LAST">Last</button>
+            <button class="xfinity-xr2-upper-button-style" id="btnXFINITYXR2_ARROW_DOWN" onclick="OnControlButtonClick(this);" data-action="ACTION_XFINITYXR2_ARROW_DOWN">Down</button>
+            <button class="xfinity-xr2-upper-button-style" id="btnXFINITYXR2_PAGE_DOWN" onclick="OnControlButtonClick(this);" data-action="ACTION_XFINITYXR2_PAGE_DOWN">Page Down</button>
+        </div>
+
+        <div class="xfinity-xr2-3-column-button-grid">
+            <button class="xfinity-xr2-upper-button-style" id="btnXFINITYXR2_EXIT" onclick="OnControlButtonClick(this);" data-action="ACTION_XFINITYXR2_EXIT">Exit</button>
+            <button class="xfinity-xr2-upper-button-style" id="btnXFINITYXR2_INFO" onclick="OnControlButtonClick(this);" data-action="ACTION_XFINITYXR2_INFO">Info</button>
+            <button class="xfinity-xr2-upper-button-style" id="btnXFINITYXR2_FAV" onclick="OnControlButtonClick(this);" data-action="ACTION_XFINITYXR2_FAV">Fav</button>
+        </div>
+        <div class="xfinity-xr2-4-column-button-grid">
+            <button class="xfinity-xr2-upper-button-style" id="btnXFINITYXR2_BUTTON_A" onclick="OnControlButtonClick(this);" data-action="ACTION_XFINITYXR2_A">A</button>
+            <button class="xfinity-xr2-upper-button-style" id="btnXFINITYXR2_BUTTON_B" onclick="OnControlButtonClick(this);" data-action="ACTION_XFINITYXR2_B">B</button>
+            <button class="xfinity-xr2-upper-button-style" id="btnXFINITYXR2_BUTTON_C" onclick="OnControlButtonClick(this);" data-action="ACTION_XFINITYXR2_C">C</button>
+            <button class="xfinity-xr2-upper-button-style" id="btnXFINITYXR2_BUTTON_D" onclick="OnControlButtonClick(this);" data-action="ACTION_XFINITYXR2_D">D</button>
+        </div>
+        <div class="xfinity-xr2-3-column-button-grid">
+            <button class="xfinity-xr2-upper-button-style" id="btnXFINITYXR2_BUTTON_1" onclick="OnControlButtonClick(this);" data-action="ACTION_XFINITYXR2_1">1</button>
+            <button class="xfinity-xr2-upper-button-style" id="btnXFINITYXR2_BUTTON_2" onclick="OnControlButtonClick(this);" data-action="ACTION_XFINITYXR2_2">2</button>
+            <button class="xfinity-xr2-upper-button-style" id="btnXFINITYXR2_BUTTON_3" onclick="OnControlButtonClick(this);" data-action="ACTION_XFINITYXR2_3">3</button>
+
+            <button class="xfinity-xr2-upper-button-style" id="btnXFINITYXR2_BUTTON_4" onclick="OnControlButtonClick(this);" data-action="ACTION_XFINITYXR2_4">4</button>
+            <button class="xfinity-xr2-upper-button-style" id="btnXFINITYXR2_BUTTON_5" onclick="OnControlButtonClick(this);" data-action="ACTION_XFINITYXR2_5">5</button>
+            <button class="xfinity-xr2-upper-button-style" id="btnXFINITYXR2_BUTTON_6" onclick="OnControlButtonClick(this);" data-action="ACTION_XFINITYXR2_6">6</button>
+
+            <button class="xfinity-xr2-upper-button-style" id="btnXFINITYXR2_BUTTON_7" onclick="OnControlButtonClick(this);" data-action="ACTION_XFINITYXR2_7">7</button>
+            <button class="xfinity-xr2-upper-button-style" id="btnXFINITYXR2_BUTTON_8" onclick="OnControlButtonClick(this);" data-action="ACTION_XFINITYXR2_8">8</button>
+            <button class="xfinity-xr2-upper-button-style" id="btnXFINITYXR2_BUTTON_9" onclick="OnControlButtonClick(this);" data-action="ACTION_XFINITYXR2_9">9</button>
+
+            <button class="xfinity-xr2-upper-button-style" id="btnXFinityXR2Button_SETUP" onclick="OnControlButtonClick(this);" data-action=""></button>
+            <button class="xfinity-xr2-upper-button-style" id="btnXFINITYXR2_BUTTON_0" onclick="OnControlButtonClick(this);" data-action="ACTION_XFINITYXR2_BUTTON_0">0</button>
+            <button class="xfinity-xr2-upper-button-style" id="btnXFINITYXR2_SWAP" onclick="OnControlButtonClick(this);" data-action="ACTION_XFINITYXR2_SWAP">Swap</button>
+        </div>
+    </div>
+
+    <!-- =========================================== -->
+    <!-- Comcast Button Controls                     -->
+    <!-- =========================================== -->
+    <div id="divComcastButtons" class="" style="display:none; visibility:hidden">
+        <div class="comcast-main-button-grid">
+            <button class="comcast-main-button-style" id="btnComcastButton_INFO" onclick="OnControlButtonClick(this);" data-action="ACTION_COMCAST_INFO">Info</button>
+            <button class="comcast-main-button-style" id="btnComcastButton_Guide" onclick="OnControlButtonClick(this);" data-action="ACTION_XFINITYXR2_GUIDE">Guide</button>
+            <button class="comcast-main-button-style" id="btnComcastButton_Exit" onclick="OnControlButtonClick(this);" data-action="ACTION_COMCAST_EXIT">Exit</button>
+            <button class="comcast-main-button-style" id="btnComcastButton_1" onclick="OnControlButtonClick(this);" data-action="ACTION_COMCAST_1">1</button>
+            <button class="comcast-main-button-style" id="btnComcastButton_2" onclick="OnControlButtonClick(this);" data-action="ACTION_COMCAST_2">2</button>
+            <button class="comcast-main-button-style" id="btnComcastButton_3" onclick="OnControlButtonClick(this);" data-action="ACTION_COMCAST_3">3</button>
+            <button class="comcast-main-button-style" id="btnComcastButton_4" onclick="OnControlButtonClick(this);" data-action="ACTION_COMCAST_4">4</button>
+            <button class="comcast-main-button-style" id="btnComcastButton_5" onclick="OnControlButtonClick(this);" data-action="ACTION_COMCAST_5">5</button>
+            <button class="comcast-main-button-style" id="btnComcastButton_6" onclick="OnControlButtonClick(this);" data-action="ACTION_COMCAST_6">6</button>
+            <button class="comcast-main-button-style" id="btnComcastButton_7" onclick="OnControlButtonClick(this);" data-action="ACTION_COMCAST_7">7</button>
+            <button class="comcast-main-button-style" id="btnComcastButton_8" onclick="OnControlButtonClick(this);" data-action="ACTION_COMCAST_8">8</button>
+            <button class="comcast-main-button-style" id="btnComcastButton_9" onclick="OnControlButtonClick(this);" data-action="ACTION_COMCAST_9">9</button>
+            <button class="comcast-main-button-style" id="btnComcastButton_Enter" onclick="OnControlButtonClick(this);" data-action="ACTION_COMCAST_ENTER">Enter</button>
+            <button class="comcast-main-button-style" id="btnComcastButton_0" onclick="OnControlButtonClick(this);" data-action="ACTION_COMCAST_0">0</button>
+            <button class="comcast-main-button-style" id="btnComcastButton_Last" onclick="OnControlButtonClick(this);" data-action="ACTION_COMCAST_LAST">Last</button>
+            <button class="comcast-main-button-style" id="btnComcastButton_VolumeUp" onclick="OnControlButtonClick(this);" data-action="ACTION_VIZIO_VOLUME_UP">Vol+</button>
+            <button class="comcast-main-button-style" id="btnComcastButton_Mute" onclick="OnControlButtonClick(this);" data-action="ACTION_VIZIO_MUTE">Mute</button>
+            <button class="comcast-main-button-style" id="btnComcastButton_ChannelUp" onclick="OnControlButtonClick(this);" data-action="ACTION_COMCAST_CHANNEL_UP">Ch +</button>
+            <button class="comcast-main-button-style" id="btnComcastButton_VolumeDown" onclick="OnControlButtonClick(this);" data-action="ACTION_VIZIO_VOLUME_DOWN">Vol -</button>
+            <button class="comcast-main-button-style" id="btnComcastButton_Lang" onclick="OnControlButtonClick(this);" data-action="ACTION_COMCAST_LANG">Lang</button>
+            <button class="comcast-main-button-style" id="btnComcastButton_ChannelDown" onclick="OnControlButtonClick(this);" data-action="ACTION_COMCAST_CHANNEL_DOWN">Ch -</button>
+            <button class="comcast-main-button-style" id="btnComcastButton_PageUp" onclick="OnControlButtonClick(this);" data-action="ACTION_COMCAST_PAGE_UP">PgUp</button>
+            <button class="comcast-main-button-style" id="btnComcastButton_Up" onclick="OnControlButtonClick(this);" data-action="ACTION_COMCAST_UP">UP</button>
+            <button class="comcast-main-button-style" id="btnComcastButton_PageDown" onclick="OnControlButtonClick(this);" data-action="ACTION_COMCAST_PAGE_DOWN">PgDown</button>
+            <button class="comcast-main-button-style" id="btnComcastButton_Left" onclick="OnControlButtonClick(this);" data-action="ACTION_COMCAST_LEFT">Left</button>
+            <button class="comcast-main-button-style" id="btnComcastButton_OK" onclick="OnControlButtonClick(this);" data-action="ACTION_COMCAST_OK">OK</button>
+            <button class="comcast-main-button-style" id="btnComcastButton_Right" onclick="OnControlButtonClick(this);" data-action="ACTION_COMCAST_RIGHT">Right</button>
+            <div></div>
+            <button class="comcast-main-button-style" id="btnComcastButton_Down" onclick="OnControlButtonClick(this);" data-action="ACTION_COMCAST_DOWN">Down</button>
+            <div></div>
+        </div>
+    </div>
+
+    <!-- =========================================== -->
+    <!-- Vizio Button Controls                       -->
+    <!-- =========================================== -->
+    <div id="divVizioButtons" class="" style="display:none; visibility:hidden">
+        <div id="divVizioButtonsAlignment" class="visio-buttons-alignment">
+            <div class="vizio-control-button-grid">
+                <button class="vizio-control-button-style" id="btnVizioGuide" onclick="OnControlButtonClick(this);" data-action="ACTION_VIZIO_GUIDE">Guide</button>
+                <div></div>
+                <button class="vizio-control-button-style" id="btnVizioPower" onclick="OnControlButtonClick(this);" data-action="ACTION_VIZIO_POWER">Power</button>
+                <button class="vizio-control-button-style" id="btnVizioHDMI" onclick="OnControlButtonClick(this);" data-action="ACTION_VIZIO_SOURCE_HDMI">HDMI</button>
+                <button class="vizio-control-button-style" id="btnVizioMute" onclick="OnControlButtonClick(this);" data-action="ACTION_VIZIO_MUTE">Mute</button>
+                <button class="vizio-control-button-style" id="btnVizioTV" onclick="OnControlButtonClick(this);" data-action="ACTION_VIZIO_SOURCE_TV">TV</button>
+                <button class="vizio-control-button-style" id="btnVizioComp" onclick="OnControlButtonClick(this);" data-action="ACTION_VIZIO_SOURCE_COMP">Comp</button>
+                <button class="vizio-control-button-style" id="btnVizioLast" onclick="OnControlButtonClick(this);" data-action="ACTION_VIZIO_LAST">Last</button>
+                <button class="vizio-control-button-style" id="btnVizioAV" onclick="OnControlButtonClick(this);" data-action="ACTION_VIZIO_SOURCE_AV">AV</button>
+            </div>
+            <div class="vizio-vol-channel-button-grid">
+                <div class="vizio-vol-channel-button-style"></div>
+                    <button class="vizio-vol-channel-button-style" id="btnVizioChannelUp" onclick="OnControlButtonClick(this);" data-action="ACTION_VIZIO_CHANNEL_UP">Ch +</button>
+                <div class="vizio-vol-channel-button-style"></div>
+                    <button class="vizio-vol-channel-button-style" id="btnVizioVolumeDown" onclick="OnControlButtonClick(this);" data-action="ACTION_VIZIO_VOLUME_DOWN">Vol -</button>
+                    <button class="vizio-vol-channel-button-style" id="btnVizioCenterV" onclick="OnControlButtonClick(this);" data-action="ACTION_VIZIO_BUTTON_V">V</button>
+                    <button class="vizio-vol-channel-button-style" id="btnVizioVolumeUp" onclick="OnControlButtonClick(this);" data-action="ACTION_VIZIO_VOLUME_UP">Vol +</button>
+                <div class="vizio-vol-channel-button-style"></div>
+                    <button class="vizio-vol-channel-button-style" id="btnVizioChannelDown" onclick="OnControlButtonClick(this);" data-action="ACTION_VIZIO_CHANNEL_DOWN">Ch -</button>
+                <div class="vizio-vol-channel-button-style"></div>
+            </div>
+            <div class="vizio-pip-swap-freeze-button-grid">
+                <button class="vizio-pip-swap-freeze-button-style" id="btnVizioPIP" onclick="OnControlButtonClick(this);" data-action="ACTION_VIZIO_PIP">PIP</button>
+                <button class="vizio-pip-swap-freeze-button-style" id="btnVizioSwap" onclick="OnControlButtonClick(this);" data-action="ACTION_VIZIO_SWAP_SRC">SWAP</button>
+                <button class="vizio-pip-swap-freeze-button-style" id="btnVizioFreeze" onclick="OnControlButtonClick(this);" data-action="ACTION_VIZIO_FREEZE">FREEZE</button>
+            </div>
+            <div class="vizio-keypad-button-grid">
+                <button class="vizio-keypad-button-style" id="btnVizioKeypad_1" onclick="OnControlButtonClick(this);" data-action="ACTION_VIZIO_1">1</button>
+                <button class="vizio-keypad-button-style" id="btnVizioKeypad_2" onclick="OnControlButtonClick(this);" data-action="ACTION_VIZIO_2">2</button>
+                <button class="vizio-keypad-button-style" id="btnVizioKeypad_3" onclick="OnControlButtonClick(this);" data-action="ACTION_VIZIO_3">3</button>
+                <button class="vizio-keypad-button-style" id="btnVizioKeypad_4" onclick="OnControlButtonClick(this);" data-action="ACTION_VIZIO_4">4</button>
+                <button class="vizio-keypad-button-style" id="btnVizioKeypad_5" onclick="OnControlButtonClick(this);" data-action="ACTION_VIZIO_5">5</button>
+                <button class="vizio-keypad-button-style" id="btnVizioKeypad_6" onclick="OnControlButtonClick(this);" data-action="ACTION_VIZIO_6">6</button>
+                <button class="vizio-keypad-button-style" id="btnVizioKeypad_7" onclick="OnControlButtonClick(this);" data-action="ACTION_VIZIO_7">7</button>
+                <button class="vizio-keypad-button-style" id="btnVizioKeypad_8" onclick="OnControlButtonClick(this);" data-action="ACTION_VIZIO_8">8</button>
+                <button class="vizio-keypad-button-style" id="btnVizioKeypad_9" onclick="OnControlButtonClick(this);" data-action="ACTION_VIZIO_9">9</button>
+                <button class="vizio-input-minus-button-style" id="btnVizioInput" onclick="OnControlButtonClick(this);" data-action="ACTION_VIZIO_INPUT">Input</button>
+                <button class="vizio-keypad-button-style" id="btnVizioKeypad_0" onclick="OnControlButtonClick(this);" data-action="ACTION_VIZIO_0">0</button>
+                <button class="vizio-input-minus-button-style" id="btnVizioDash" onclick="OnControlButtonClick(this);" data-action="ACTION_VIZIO_DASH">-</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- =========================================== -->
+    <!-- Vizio Button Controls                       -->
+    <!-- =========================================== -->
+    <div id="divRawValues" class="" style="display:none; visibility:hidden">
+        <button id="btnSendRawValues" onclick="sendRawValues();">Send</button>
+        <button id="btnClearRawValues" onclick="clearRawValues();">Clear</button>
+        <textarea id="txtRawIRValues" rows="20" cols="60"></textarea><br>
+        <div>Format lines as: [IR_PROTOCOL],[IR_CODE]</div>
+        <div>Example:  NEC,0x20DF10EF # VIZIO Power</div>
+        <div>Text after "#" character is ignored</div>
+        <div>Special IR_PROTOCOLs:</div>
+        <p>
+        <div>DELAY,&lt;DELAY_IN_MS&gt;</div>
+        <div>Example: DELAY,10000 # Delay for 10 seconds<div>
+        <p>
+        <div>DELAY_UNTIL_DATE_TIME,&lt;FUTURE_DATE_TIME&gt;</div>
+        <div>Example: DELAY_UNTIL_DATE_TIME,"1/7/2025 12:30:11 AM"  # Delay until that date/time (no delay if time has passed)<div>
+    </div>
+</div>
+</body>
+</html>
+)=====";

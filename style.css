@@ -1,0 +1,281 @@
+/*
+    For reference:
+
+    UA String of phone:
+    User-Agent: Mozilla/5.0 (Linux; Android 12; SM-G781U1) AppleWebKit/537.36(KHTML, like Gecko) Chrome/107.0.0.0 Mobile Safari/537.36 EdgA/107.0.1418.43
+
+    UA String of Desktop:
+    User-Agent: Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36
+*/
+
+/***********************************************************************
+    Main Container View styles
+************************************************************************/
+.all-in-one-main-grid {
+    width : 400px;
+}
+
+/***********************************************************************
+    Navigation Container
+************************************************************************/
+.navigation-buttons-container {
+    display               : grid;
+    grid-template-columns : repeat(6, auto);
+    grid-column-gap       : 10px;
+}
+
+.navigation-button-style {
+    display : grid;
+}
+
+.navigation-button-style-hidden{
+    display : hidden;
+}
+
+.navigation-button-style-visible{
+    display : visible;
+}
+
+/***********************************************************************
+    default Container View styles
+************************************************************************/
+.default-control-button-grid {
+    display               : grid;
+    grid-template-columns : repeat(4, auto);
+    grid-template-rows    : repeat(2, auto);
+    grid-row              : 2;
+    grid-row-gap          : 10px;
+    grid-column-gap       : 4px;
+    padding-top           : 6px;
+    padding-bottom        : 6px;
+    width                 : 80%;
+}
+
+.default-keypad-and-presets-section {
+    display               : grid;
+    grid-row              : 3;
+    grid-template-columns : repeat(3, auto);
+    grid-template-rows    : repeat(1, auto);
+    grid-row-gap          : 10px;
+    grid-column-gap       : 6px;
+    width                 : 90%;
+}
+
+.default-keypad-button-grid {
+    display               : grid;
+    grid-template-columns : repeat(3, auto);
+    grid-template-rows    : repeat(4, auto);
+    grid-column           : 1;
+    grid-row-gap          : 10px;
+}
+
+.default-control-buttons {
+    display               : grid;
+    grid-template-columns : repeat(1, auto);
+    grid-template-rows    : repeat(4, auto);
+    grid-column           : 2;
+    grid-row-gap          : 10px;
+}
+
+.default-preset-button {
+    display               : grid;
+    grid-template-columns : repeat(1, auto);
+    grid-template-rows    : repeat(4, auto);
+    grid-column           : 3;
+    grid-column-gap       : 10px;
+    grid-row-gap          : 10px;
+}
+
+.default-control-button-style {
+    width :100px;
+}
+
+.default-presets-button-style {
+    width :100px;
+}
+
+.default-keypad-button-style {
+    width : 42px ;
+}
+
+/***********************************************************************
+Xfinity XR2 Container View Styles
+************************************************************************/
+.xfinity-xr2-3-column-button-grid {
+    display               : grid;
+    grid-template-columns : repeat(3, auto);
+    grid-column-gap       : 10px;
+    grid-row-gap          : 10px;
+    padding               : 10px;
+}
+
+.xfinity-xr2-4-column-button-grid {
+    display               : grid;
+    grid-template-columns : repeat(4, auto);
+    grid-column-gap       : 10px;
+    grid-row-gap          : 10px;
+    padding               : 10px;
+}
+
+/***********************************************************************
+Comcast Container View styles
+************************************************************************/
+.comcast-main-grid {
+    display               : grid;
+    grid-template-columns : repeat(3, auto);
+    grid-template-rows    : repeat(11, auto);
+    grid-column-gap       : 10px;
+    grid-row-gap          : 10px;
+    justify-content       : left;
+}
+
+.comcast-main-button-grid {
+    display               : grid;
+    grid-template-columns : repeat(3, auto);
+    grid-template-rows    : repeat(10, auto);
+    grid-row              : 2;
+    grid-column-gap       : 10px;
+    grid-row-gap          : 10px;
+    justify-content       : left;
+    padding               : 10px;
+}
+
+.comcast-navigation-button-style {
+    width : auto;
+}
+
+.comcast-main-button-style {
+    width : auto;
+}
+
+/***********************************************************************
+    Vizio Container View styles
+************************************************************************/
+.visio-buttons-alignment {
+    justify-content : left;
+    width           : 50%;
+    padding         : 10px;
+}
+
+.vizio-main-grid {
+    display               : grid;
+    grid-template-columns : repeat(3, auto);
+    grid-template-rows    : repeat(12, auto);
+    grid-column-gap       : 10px;
+    grid-row-gap          : 10px;
+    justify-content       : space-between;
+}
+
+.vizio-control-button-grid {
+    display               : grid;
+    grid-template-columns : repeat(3, auto);
+    grid-template-rows    : repeat(3, auto);
+    grid-row              : 2;
+    grid-column-gap       : 10px;
+    grid-row-gap          : 10px;
+    justify-content       : space-between;
+    padding               : 6px;
+}
+
+.vizio-vol-channel-button-grid {
+    display               : grid;
+    grid-template-columns : repeat(3, auto);
+    grid-template-rows    : repeat(3, auto);
+    grid-row              : 3;
+    grid-column-gap       : 10px;
+    grid-row-gap          : 10px;
+    justify-content       : space-between;
+    padding-top           : 6px;
+}
+
+.vizio-pip-swap-freeze-button-grid {
+    display               : grid;
+    grid-template-columns : repeat(3, auto);
+    grid-column-gap       : 10px;
+    grid-row              : 4;
+    grid-row-gap          : 10px;
+    justify-content       : space-between;
+    padding-top           : 6px;
+}
+
+.vizio-keypad-button-grid {
+    display               : grid;
+    grid-template-columns : repeat(3, auto);
+    grid-template-rows    : repeat(4, auto);
+    grid-column           : 1;
+    grid-column-gap       : 10px;
+    grid-row-gap          : 10px;
+    justify-content       : center;
+    padding               : 6px;
+}
+
+.vizio-navigation-button-style {
+    width : auto;
+}
+
+.vizio-control-button-style {
+    width : auto;
+}
+
+.vizio-vol-channel-button-style {
+    width : auto;
+}
+
+.vizio-pip-swap-freeze-button-style {
+    width :  60px;
+}
+
+.vizio-keypad-button-style {
+    width :  60px;
+}
+
+.vizio-input-minus-button-style{
+    width :  auto;
+}
+
+
+/***********************************************************************
+    Presets Container View styles
+************************************************************************/
+.presets-main-grid {
+    display               : grid;
+    grid-template-columns : repeat(1, auto);
+    grid-template-rows    : repeat(3, auto);
+    grid-column-gap       : 10px;
+    grid-row-gap          : 10px;
+    justify-content       : start;
+}
+
+.presets-channel-preset-grid {
+    display               : grid;
+    grid-template-columns : repeat(6, 1fr);
+    grid-template-rows    : repeat(4, auto);
+    grid-row              : 2;
+    grid-column-gap       : 6px;
+    grid-row-gap          : 10px;
+    justify-content       : start;
+    padding-top           : 6px;
+}
+
+.presets-music-preset-grid {
+    display               : grid;
+    grid-template-columns : repeat(5, 1fr);
+    grid-template-rows    : repeat(4, auto);
+    grid-row              : 3;
+    grid-column-gap       : 10px;
+    grid-row-gap          : 10px;
+    justify-content       : start;
+    padding-top           : 8px;
+}
+
+.presets-navigation-button-style {
+    width : auto;
+}
+
+.presets-channel-button-style {
+    width : auto;
+}
+
+.presets-music-button-style {
+    width : auto;
+}

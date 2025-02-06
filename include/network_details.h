@@ -1,0 +1,3 @@
+#define WIFI_SSID_1 "ROUTER_1"
+#define WIFI_SSID_2 "ROUTER_2"
+#define WIFI_PASSWORD "SUPER_SECRET"
