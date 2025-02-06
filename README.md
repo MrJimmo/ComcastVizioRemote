@@ -45,7 +45,7 @@ Comcast Buttons:<br>
 <img src="./content/UI_Comcast_Buttons.png" style="width:40%">
 
 Vizio TV Buttons:<br>
-<img src="./content/UI_Vizio_Buttons.PNG" style="width:40%">
+<img src="./content/UI_Vizio_Buttons.png" style="width:40%">
 
 XFinity XR2 Buttons:<br>
 <img src="./content/UI_Xfinity_XR2_Buttons.PNG" style="width:36%">
